@@ -155,8 +155,14 @@
 
       <div class="results-header">
         <h2 class="results-title">Proyección estimada</h2>
-        <div class="best-channel-pill" id="best-channel-pill">
-          🏆 Mejor canal: <strong id="best-channel-name">—</strong>&nbsp;·&nbsp;CPA <span id="best-channel-cpa">—</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="best-channel-pill" id="best-channel-pill">
+            🏆 Mejor canal: <strong id="best-channel-name">—</strong>&nbsp;·&nbsp;CPA <span id="best-channel-cpa">—</span>
+          </div>
+          <div id="sim-badge" style="display:none;align-items:center;gap:6px;padding:5px 12px;background:#06b6d422;border:1px solid #06b6d455;border-radius:100px;font-size:12px;color:#06b6d4;font-weight:600;">
+            ✏️ Modo simulación activo
+            <button id="btn-reset-sim" style="margin-left:6px;background:transparent;border:1px solid #06b6d455;color:#06b6d4;border-radius:100px;padding:2px 10px;font-size:11px;cursor:pointer;font-weight:600;">Restablecer</button>
+          </div>
         </div>
       </div>
 
@@ -181,6 +187,11 @@
           <div class="kpi-label">CPA promedio</div>
           <div class="kpi-value" id="res-cpa">—</div>
           <div class="kpi-sub">costo por adquisición</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">CPM promedio</div>
+          <div class="kpi-value" id="res-cpm">—</div>
+          <div class="kpi-sub">costo por mil impresiones</div>
         </div>
         <div class="kpi-card highlight">
           <div class="kpi-label">Inversión total</div>
@@ -220,6 +231,9 @@
               <th>Impresiones</th>
               <th>Clicks</th>
               <th>Conversiones</th>
+              <th>CPC</th>
+              <th>CPM</th>
+              <th>Conv. %</th>
               <th>CPA</th>
               <th>ROI</th>
               <th>Revenue Est.</th>
