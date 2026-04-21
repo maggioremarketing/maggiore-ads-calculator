@@ -3,6 +3,8 @@
    Paleta: negro profundo + teal/verde Maggiore (globo aerostático)
    ============================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 /* ── Variables ── */
 :root {
   --bg:          #04080f;
@@ -47,8 +49,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Google Font (Inter) ── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+/* (Google Font importado arriba del todo) */
 
 /* ── Layout ── */
 .container {
@@ -179,10 +180,57 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 28px;
 }
-@media (max-width: 680px) {
+/* ══════════════════════════════════════════
+   RESPONSIVE — Tablet (≤768px)
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .navbar { padding: 16px 20px; }
+  .hero { padding: 48px 20px 40px; }
+  .form-section { padding: 0 20px 48px; }
+  #results-section { padding: 0 20px 60px; }
+  .footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — Mobile (≤600px)
+══════════════════════════════════════════ */
+@media (max-width: 600px) {
   .form-grid { grid-template-columns: 1fr; }
-  .navbar, .hero, .form-section { padding-left: 20px; padding-right: 20px; }
-  .form-card { padding: 24px; }
+  .form-card { padding: 20px; }
+
+  /* Hero */
+  .hero-sub { font-size: 15px; }
+
+  /* Budget row: stack vertically en pantallas muy chicas */
+  .budget-input-row { flex-wrap: wrap; }
+  .budget-number { width: 100% !important; }
+  .currency-toggle { width: 100%; justify-content: center; }
+
+  /* Meses: 2 por fila */
+  .months-options { display: grid; grid-template-columns: 1fr 1fr; }
+  .month-btn { text-align: center; }
+
+  /* Canales: 2 por fila */
+  .channels-grid { grid-template-columns: 1fr 1fr; }
+
+  /* CTA full width */
+  .cta-row { flex-direction: column; align-items: stretch; }
+  .btn-calculate { justify-content: center; width: 100%; }
+
+  /* KPIs: 2 por fila */
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 20px; }
+  .kpi-card.roi .kpi-value { font-size: 24px; }
+
+  /* Barras: 1 por fila */
+  #bars-container { grid-template-columns: 1fr; }
+
+  /* Results header: stack */
+  .results-header { flex-direction: column; align-items: flex-start; }
+  .best-channel-pill { font-size: 12px; }
+
+  /* Tabla: scroll horizontal (ya tiene overflow-x: auto) */
+  .table-wrapper { -webkit-overflow-scrolling: touch; }
 }
 
 /* ── Field ── */
