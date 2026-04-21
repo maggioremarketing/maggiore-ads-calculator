@@ -74,8 +74,8 @@ const BENCHMARKS = {
     tiktok: {
       name: 'TikTok Ads',
       icon: '🎵',
-      color: '#010101',
-      colorAlt: '#ff0050',
+      color: '#EE1D52',
+      colorAlt: '#EE1D52',
       description: 'Video & In-Feed Ads',
       industries: {
         retail:      { cpm: 9.5,  cpc: 0.60, ctr: 1.5, cvr: 1.8, cpa: 33,  roiMultiplier: 2.5 },
