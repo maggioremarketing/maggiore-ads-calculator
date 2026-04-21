@@ -23,12 +23,16 @@ const Calculator = (() => {
     // Métricas base — se reemplazan si hay override del usuario
     const cpm = overrides.cpm ?? ind.cpm;
     const ctr = overrides.ctr ?? ind.ctr;
-    const cvr = overrides.cvr ?? ind.cvr;
+
+    // CVR: si el usuario pone override, lo usamos directo como tasa final (sin multiplicar).
+    // Si es el benchmark, aplicamos el multiplicador del objetivo.
+    const cvrBench    = ind.cvr * objMult.cvrMult;  // benchmark efectivo con objetivo
+    const cvrEffective = overrides.cvr !== undefined ? overrides.cvr : cvrBench;
 
     // Cálculos
     const impressions = Math.round((totalBudget / cpm) * 1000 * objMult.reachMult);
     const clicks      = Math.round(impressions * (ctr / 100));
-    const conversions = Math.round(clicks * (cvr / 100) * objMult.cvrMult);
+    const conversions = Math.round(clicks * (cvrEffective / 100));
     const cpa         = conversions > 0 ? totalBudget / conversions : ind.cpa * objMult.cpaMult;
     const cpcReal     = clicks > 0 ? totalBudget / clicks : (overrides.cpc ?? ind.cpc);
     const cpmReal     = impressions > 0 ? (totalBudget / impressions) * 1000 : cpm;
@@ -38,6 +42,13 @@ const Calculator = (() => {
     const badgeColor = ch.channelColor === '#010101'
       ? (ch.channelColorAlt || '#EE1D52')
       : ch.channelColor;
+
+    // Formato inteligente para CPC/CPM: más decimales si el valor es < 1
+    function fmtMetric(val) {
+      if (val < 0.01) return parseFloat(val.toFixed(4));
+      if (val < 1)    return parseFloat(val.toFixed(3));
+      return parseFloat(val.toFixed(2));
+    }
 
     return {
       channelId,
@@ -52,20 +63,20 @@ const Calculator = (() => {
       conversionLabel:   BENCHMARKS.objectives.find(o => o.id === objectiveId)?.conversionLabel || 'Conversiones',
       cpa:               parseFloat(cpa.toFixed(2)),
       cpaCLP:            Math.round(cpa * BENCHMARKS.usdToClp),
-      cpc:               parseFloat(cpcReal.toFixed(2)),
+      cpc:               fmtMetric(cpcReal),
       cpcCLP:            Math.round(cpcReal * BENCHMARKS.usdToClp),
-      cpm:               parseFloat(cpmReal.toFixed(2)),
+      cpm:               fmtMetric(cpmReal),
       cpmCLP:            Math.round(cpmReal * BENCHMARKS.usdToClp),
       ctr:               parseFloat(ctr.toFixed(2)),
-      cvr:               parseFloat((cvr * objMult.cvrMult).toFixed(2)),
+      cvr:               parseFloat(cvrEffective.toFixed(2)),  // valor final, lo que ve el usuario
       roi:               parseFloat(roi.toFixed(1)),
       estimatedRevenue:  parseFloat(estimatedRevenue.toFixed(2)),
       estimatedRevenueCLP: Math.round(estimatedRevenue * BENCHMARKS.usdToClp),
       roiMultiplier:     ind.roiMultiplier,
-      // Benchmarks originales (para comparar en modo simulación)
-      benchmarkCPC:      ind.cpc,
-      benchmarkCPM:      ind.cpm,
-      benchmarkCVR:      ind.cvr,
+      // Benchmarks efectivos (con multiplicador de objetivo, para comparar en modo simulación)
+      benchmarkCPC:      fmtMetric(ind.cpc),
+      benchmarkCPM:      fmtMetric(ind.cpm),
+      benchmarkCVR:      parseFloat(cvrBench.toFixed(2)),
       benchmarkCTR:      ind.ctr,
       // Flags
       hasOverride:       Object.keys(overrides).length > 0,
