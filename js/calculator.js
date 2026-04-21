@@ -298,9 +298,11 @@ const UI = (() => {
         ? fmt(ch.estimatedRevenueCLP, 'currency-clp')
         : fmt(ch.estimatedRevenue, 'currency-usd');
 
+      // Usar colorAlt si el color principal es demasiado oscuro para fondo oscuro
+      const badgeColor = ch.channelColor === '#010101' ? (ch.channelColorAlt || '#EE1D52') : ch.channelColor;
       tr.innerHTML = `
         <td>
-          <span class="ch-badge" style="background:${ch.channelColor}20;color:${ch.channelColor};border:1px solid ${ch.channelColor}40">
+          <span class="ch-badge" style="background:${badgeColor}22;color:${badgeColor};border:1px solid ${badgeColor}55">
             ${ch.channelIcon} ${ch.channelName}
           </span>
         </td>
