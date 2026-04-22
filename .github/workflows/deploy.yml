@@ -20,6 +20,5 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: "."
-          exclude: ".github"
           target: /home/u969893599/domains/maggiore.cl/public_html/intel/maggiore-ads-calculator/
           rm: false
