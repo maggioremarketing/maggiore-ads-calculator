@@ -29,9 +29,11 @@ const Calculator = (() => {
     const cvrBench    = ind.cvr * objMult.cvrMult;  // benchmark efectivo con objetivo
     const cvrEffective = overrides.cvr !== undefined ? overrides.cvr : cvrBench;
 
-    // Cálculos
+    // Cálculos — si hay override de CPC, lo usamos para derivar clicks
     const impressions = Math.round((totalBudget / cpm) * 1000 * objMult.reachMult);
-    const clicks      = Math.round(impressions * (ctr / 100));
+    const clicks      = overrides.cpc !== undefined
+      ? Math.round(totalBudget / overrides.cpc)
+      : Math.round(impressions * (ctr / 100));
     const conversions = Math.round(clicks * (cvrEffective / 100));
     const cpa         = conversions > 0 ? totalBudget / conversions : ind.cpa * objMult.cpaMult;
     const cpcReal     = clicks > 0 ? totalBudget / clicks : (overrides.cpc ?? ind.cpc);
@@ -287,7 +289,7 @@ const UI = (() => {
             <div class="sim-input-wrap">
               ${cpcEdited ? `<span class="sim-bench">bench: $${ch.benchmarkCPC}</span>` : ''}
               <input type="number" class="sim-input" data-channel="${ch.channelId}" data-metric="cpc"
-                value="${parseFloat(ch.cpc.toFixed(2))}" min="0.01" step="0.01"
+                value="${ov.cpc !== undefined ? ov.cpc : parseFloat(ch.cpc.toFixed(2))}" min="0.01" step="0.01"
                 title="Edita para simular cambio de CPC">
             </div>
           </div>
@@ -296,7 +298,7 @@ const UI = (() => {
             <div class="sim-input-wrap">
               ${cpmEdited ? `<span class="sim-bench">bench: $${ch.benchmarkCPM}</span>` : ''}
               <input type="number" class="sim-input" data-channel="${ch.channelId}" data-metric="cpm"
-                value="${parseFloat(ch.cpm.toFixed(2))}" min="0.01" step="0.01"
+                value="${ov.cpm !== undefined ? ov.cpm : parseFloat(ch.cpm.toFixed(2))}" min="0.01" step="0.01"
                 title="Edita para simular cambio de CPM">
             </div>
           </div>
@@ -305,7 +307,7 @@ const UI = (() => {
             <div class="sim-input-wrap">
               ${cvrEdited ? `<span class="sim-bench">bench: ${ch.benchmarkCVR}%</span>` : ''}
               <input type="number" class="sim-input" data-channel="${ch.channelId}" data-metric="cvr"
-                value="${parseFloat(ch.cvr.toFixed(2))}" min="0.01" step="0.01"
+                value="${ov.cvr !== undefined ? ov.cvr : parseFloat(ch.cvr.toFixed(2))}" min="0.01" step="0.01"
                 title="Edita para simular cambio en tasa de conversión">
               <span class="sim-unit">%</span>
             </div>
