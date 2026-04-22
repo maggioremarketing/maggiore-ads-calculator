@@ -537,7 +537,7 @@ input[type="range"] {
 
 #bars-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 14px;
   margin-bottom: 32px;
 }
@@ -682,8 +682,8 @@ tbody td {
    MODO SIMULACIÓN — métricas editables
 ══════════════════════════════════════════ */
 .sim-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-direction: row;
   gap: 8px;
   margin-bottom: 16px;
   padding: 12px;
@@ -691,8 +691,9 @@ tbody td {
   border: 1px solid rgba(6, 182, 212, 0.15);
   border-radius: var(--radius-sm);
 }
-
 .sim-row {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -729,12 +730,13 @@ tbody td {
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--white);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  padding: 5px 7px;
+  padding: 6px 8px;
   transition: border-color 0.2s, box-shadow 0.2s;
   -moz-appearance: textfield;
   min-width: 0;
+  box-sizing: border-box;
 }
 
 .sim-input::-webkit-outer-spin-button,
