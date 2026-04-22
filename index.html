@@ -26,6 +26,12 @@
 </head>
 <body>
 
+  <!-- ══════════════ INTEL AUTH ══════════════ -->
+  <script>
+    const PROJECT = "maggiore-ads-calculator";
+  </script>
+  <script src="/core/login.js"></script>
+
   <!-- ══════════════ NAVBAR ══════════════ -->
   <nav class="navbar">
     <a href="https://maggiore.cl" target="_blank" rel="noopener" class="navbar-logo">
@@ -277,6 +283,12 @@
         b.classList.toggle('active', parseInt(b.dataset.months) === n);
       });
     }
+
+    // Intel auth callback — la calculadora no carga datos externos,
+    // el usuario puede usar la herramienta directamente al autenticarse.
+    window.intelOnLogin = function(user) {
+      // no-op: calculadora es 100% client-side
+    };
   </script>
 
 </body>
