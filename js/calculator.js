@@ -48,6 +48,7 @@ const Calculator = (() => {
 
     return {
       impressions, clicks, conversions,
+      budgetUSD,
       cpm: fmtMetric(cpm),
       ctr: parseFloat(ctr.toFixed(2)),
       cpc: fmtMetric(cpc),
