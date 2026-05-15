@@ -235,15 +235,6 @@ const Calculator = (() => {
     document.getElementById('res-conversions').textContent = fmt(r.conversions);
     document.getElementById('res-cpa').textContent         = fmtMoney(r.cpa, r.cpaCLP, cur);
 
-    // Yellow values (display + sync slider/input)
-    setYellow('cpm', r.cpm, '%', cur === 'CLP'
-      ? fmt(Math.round(r.cpm * BENCHMARKS.usdToClp), 'clp')
-      : fmt(r.cpm, 'usd'),
-      r.cpm, hasOv && state.overrides.cpm !== undefined);
-
-    setYellow('ctr', r.ctr, '%', fmt(r.ctr, 'pct'), r.ctr, hasOv && state.overrides.ctr !== undefined);
-    setYellow('cvr', r.cvr, '%', fmt(r.cvr, 'pct'), r.cvr, hasOv && state.overrides.cvr !== undefined);
-
     // Display values in cards
     document.getElementById('res-cpm').textContent = cur === 'CLP'
       ? fmt(Math.round(r.cpm * BENCHMARKS.usdToClp), 'clp')
