@@ -1,5 +1,7 @@
 /**
- * Maggiore Ads Calculator v4
+ * Maggiore Ads Calculator v5
+ * KPIs: CPM🟡 · Impresiones🟢 · CTR🟡 · CPC🟢 · Clics🟢 · CVR🟡 · Leads🟢 · CPA🟢
+ * Sliders + inputs en tarjetas amarillas. Sin sección de canales separada.
  */
 const Calculator = (() => {
 
@@ -10,86 +12,62 @@ const Calculator = (() => {
     return parseFloat(val.toFixed(2));
   }
 
-  function calcChannel(channelId, industryId, objectiveId, budgetUSD, overrides) {
-    const ch      = BENCHMARKS.channels[channelId];
-    const ind     = ch && ch.industries[industryId];
-    const objMult = BENCHMARKS.objectiveMultipliers[objectiveId];
-    if (!ch || !ind || !objMult) return null;
+  // Calcula con parámetros agregados (overrides afectan todos los canales)
+  function calcAggregate(budgetUSD, channels, industryId, objectiveId, overrides) {
+    // Promediar benchmarks de los canales seleccionados
+    let sumCPM = 0, sumCTR = 0, sumCVR = 0, sumCPA = 0;
+    let count = 0;
+    channels.forEach(chId => {
+      const ch  = BENCHMARKS.channels[chId];
+      const ind = ch && ch.industries[industryId];
+      const obj = BENCHMARKS.objectiveMultipliers[objectiveId];
+      if (!ind || !obj) return;
+      sumCPM += ind.cpm;
+      sumCTR += ind.ctr;
+      sumCVR += ind.cvr * obj.cvrMult;
+      sumCPA += ind.cpa * obj.cpaMult;
+      count++;
+    });
+    if (!count) return null;
 
-    const cpm          = overrides.cpm ?? ind.cpm;
-    const ctr          = overrides.ctr ?? ind.ctr;
-    const cvrBench     = ind.cvr * objMult.cvrMult;
-    const cvrEffective = overrides.cvr !== undefined ? overrides.cvr : cvrBench;
+    const obj = BENCHMARKS.objectiveMultipliers[objectiveId];
+    const benchCPM = sumCPM / count;
+    const benchCTR = sumCTR / count;
+    const benchCVR = sumCVR / count;
 
-    const impressions = Math.round((budgetUSD / cpm) * 1000 * objMult.reachMult);
-    const clicks      = overrides.cpc !== undefined
-      ? Math.round(budgetUSD / overrides.cpc)
-      : Math.round(impressions * (ctr / 100));
-    const conversions = Math.round(clicks * (cvrEffective / 100));
-    const cpa         = conversions > 0 ? budgetUSD / conversions : ind.cpa * objMult.cpaMult;
-    const cpcReal     = clicks > 0 ? budgetUSD / clicks : (overrides.cpc ?? ind.cpc);
-    const cpmReal     = impressions > 0 ? (budgetUSD / impressions) * 1000 : cpm;
+    // Usar override si existe, si no el benchmark
+    const cpm = overrides.cpm !== undefined ? overrides.cpm : benchCPM;
+    const ctr = overrides.ctr !== undefined ? overrides.ctr : benchCTR;
+    const cvr = overrides.cvr !== undefined ? overrides.cvr : benchCVR;
+
+    const impressions = Math.round((budgetUSD / cpm) * 1000 * obj.reachMult);
+    const clicks      = Math.round(impressions * (ctr / 100));
+    const conversions = Math.round(clicks * (cvr / 100));
+    const cpc         = clicks > 0 ? budgetUSD / clicks : 0;
+    const cpa         = conversions > 0 ? budgetUSD / conversions : (sumCPA / count);
 
     return {
-      channelId,
-      channelName:    ch.name,
-      channelColor:   ch.color,
-      channelIcon:    ch.icon,
-      budgetUSD,
-      impressions,
-      clicks,
-      conversions,
-      conversionLabel: objMult.label,
-      cpa:            parseFloat(cpa.toFixed(2)),
-      cpaCLP:         Math.round(cpa * BENCHMARKS.usdToClp),
-      cpc:            fmtMetric(cpcReal),
-      cpm:            fmtMetric(cpmReal),
-      cvr:            parseFloat(cvrEffective.toFixed(2)),
-      benchmarkCPC:   fmtMetric(ind.cpc),
-      benchmarkCPM:   fmtMetric(ind.cpm),
-      benchmarkCVR:   parseFloat(cvrBench.toFixed(2)),
+      impressions, clicks, conversions,
+      cpm: fmtMetric(cpm),
+      ctr: parseFloat(ctr.toFixed(2)),
+      cpc: fmtMetric(cpc),
+      cvr: parseFloat(cvr.toFixed(2)),
+      cpa: parseFloat(cpa.toFixed(2)),
+      cpaCLP: Math.round(cpa * BENCHMARKS.usdToClp),
+      benchCPM: fmtMetric(benchCPM),
+      benchCTR: parseFloat(benchCTR.toFixed(2)),
+      benchCVR: parseFloat(benchCVR.toFixed(2)),
     };
   }
 
-  function calculate({ channels, industryId, objectiveId, budgetUSD, currencyMode, overrides }) {
-    const budgetPerChannel = budgetUSD / channels.length;
-    const results = channels
-      .map(chId => calcChannel(chId, industryId, objectiveId, budgetPerChannel, overrides[chId] || {}))
-      .filter(Boolean);
-    if (!results.length) return null;
-
-    const totalImpressions = results.reduce((s, c) => s + c.impressions, 0);
-    const totalClicks      = results.reduce((s, c) => s + c.clicks, 0);
-    const totalConversions = results.reduce((s, c) => s + c.conversions, 0);
-    const avgCPM  = totalImpressions > 0 ? (budgetUSD / totalImpressions) * 1000 : 0;
-    const avgCPC  = totalClicks > 0 ? budgetUSD / totalClicks : 0;
-    const avgCVR  = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
-    const avgCPA  = totalConversions > 0 ? budgetUSD / totalConversions : 0;
-
-    return {
-      channels: results,
-      totalImpressions,
-      totalClicks,
-      totalConversions,
-      budgetUSD,
-      avgCPM:  fmtMetric(avgCPM),
-      avgCPC:  fmtMetric(avgCPC),
-      avgCVR:  parseFloat(avgCVR.toFixed(2)),
-      avgCPA:  parseFloat(avgCPA.toFixed(2)),
-      avgCPACLP: Math.round(avgCPA * BENCHMARKS.usdToClp),
-      conversionLabel: results[0]?.conversionLabel || 'Leads',
-      currencyMode,
-    };
-  }
-
-  // ── Estado ──
   const state = {
     channels: ['meta', 'google'],
     industryId: null,
     objectiveId: null,
     budgetUSD: 1000,
     currencyMode: 'USD',
-    overrides: {},
+    overrides: {},   // { cpm, ctr, cvr }
+    lastResult: null,
   };
 
   function fmt(val, type) {
@@ -99,18 +77,14 @@ const Calculator = (() => {
     if (type === 'pct') return Number(val).toFixed(2) + '%';
     return Number(val).toLocaleString('es-CL');
   }
-
-  function fmtMoney(usd, clp, cur) {
-    return cur === 'CLP' ? fmt(clp, 'clp') : fmt(usd, 'usd');
-  }
+  function fmtMoney(usd, clp, cur) { return cur === 'CLP' ? fmt(clp, 'clp') : fmt(usd, 'usd'); }
 
   function init() {
     // Populate selects
     const indSel = document.getElementById('industry');
     BENCHMARKS.industries.forEach(ind => {
       const o = document.createElement('option');
-      o.value = ind.id;
-      o.textContent = ind.label;
+      o.value = ind.id; o.textContent = ind.label;
       indSel.appendChild(o);
     });
     state.industryId = BENCHMARKS.industries[0].id;
@@ -118,23 +92,26 @@ const Calculator = (() => {
     const objSel = document.getElementById('objective');
     BENCHMARKS.objectives.forEach(obj => {
       const o = document.createElement('option');
-      o.value = obj.id;
-      o.textContent = obj.label;
+      o.value = obj.id; o.textContent = obj.label;
       objSel.appendChild(o);
     });
     state.objectiveId = BENCHMARKS.objectives[0].id;
 
-    bindEvents();
+    bindFormEvents();
+    bindSliderEvents();
     document.getElementById('results-section').style.display = 'none';
   }
 
-  function bindEvents() {
+  function bindFormEvents() {
     document.getElementById('industry').addEventListener('change', e => {
       state.industryId = e.target.value;
+      state.overrides = {};
+      if (state.lastResult) runCalculation();
     });
     document.getElementById('objective').addEventListener('change', e => {
       state.objectiveId = e.target.value;
       state.overrides = {};
+      if (state.lastResult) runCalculation();
     });
 
     const budgetEl = document.getElementById('budget');
@@ -142,6 +119,7 @@ const Calculator = (() => {
       const raw = parseFloat(budgetEl.value) || 0;
       state.budgetUSD = state.currencyMode === 'CLP' ? raw / BENCHMARKS.usdToClp : raw;
       updateBudgetDisplay();
+      if (state.lastResult) runCalculation();
     });
 
     document.querySelectorAll('.currency-btn').forEach(btn => {
@@ -149,11 +127,12 @@ const Calculator = (() => {
         document.querySelectorAll('.currency-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.currencyMode = btn.dataset.currency;
+        const budgetEl = document.getElementById('budget');
         budgetEl.value = state.currencyMode === 'CLP'
-          ? Math.round(state.budgetUSD * BENCHMARKS.usdToClp)
-          : state.budgetUSD;
+          ? Math.round(state.budgetUSD * BENCHMARKS.usdToClp) : state.budgetUSD;
         budgetEl.step = state.currencyMode === 'CLP' ? 1000 : 100;
         updateBudgetDisplay();
+        if (state.lastResult) renderKPIs(state.lastResult);
       });
     });
 
@@ -181,6 +160,38 @@ const Calculator = (() => {
     });
   }
 
+  function bindSliderEvents() {
+    // CPM
+    bindSliderPair('cpm', 'slider-cpm', 'input-cpm');
+    // CTR
+    bindSliderPair('ctr', 'slider-ctr', 'input-ctr');
+    // CVR
+    bindSliderPair('cvr', 'slider-cvr', 'input-cvr');
+  }
+
+  function bindSliderPair(metric, sliderId, inputId) {
+    const slider = document.getElementById(sliderId);
+    const input  = document.getElementById(inputId);
+
+    slider.addEventListener('input', () => {
+      const val = parseFloat(slider.value);
+      input.value = val;
+      state.overrides[metric] = val;
+      runCalculation();
+    });
+
+    input.addEventListener('change', () => {
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val <= 0) return;
+      slider.value = Math.min(Math.max(val, parseFloat(slider.min)), parseFloat(slider.max));
+      state.overrides[metric] = val;
+      runCalculation();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.dispatchEvent(new Event('change')); }
+    });
+  }
+
   function updateBudgetDisplay() {
     const el = document.getElementById('budget-display');
     if (!el) return;
@@ -194,103 +205,78 @@ const Calculator = (() => {
     if (!state.channels.length) { errorEl.textContent = 'Selecciona al menos un canal.'; return; }
     errorEl.textContent = '';
 
-    const r = calculate({
-      channels:    state.channels,
-      industryId:  state.industryId,
-      objectiveId: state.objectiveId,
-      budgetUSD:   state.budgetUSD,
-      currencyMode: state.currencyMode,
-      overrides:   state.overrides,
-    });
-
+    const r = calcAggregate(state.budgetUSD, state.channels, state.industryId, state.objectiveId, state.overrides);
     if (!r) { errorEl.textContent = 'Error al calcular.'; return; }
 
+    // Attach currency and conversion label
+    r.currencyMode = state.currencyMode;
+    const objMult = BENCHMARKS.objectiveMultipliers[state.objectiveId];
+    r.conversionLabel = objMult ? objMult.label : 'Leads';
+    state.lastResult = r;
+
     renderKPIs(r);
-    renderSimCards(r);
 
     const sec = document.getElementById('results-section');
-    sec.style.display = 'block';
-    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (sec.style.display === 'none') {
+      sec.style.display = 'block';
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   function renderKPIs(r) {
     const cur = r.currencyMode;
-    document.getElementById('res-cpm').textContent         = fmtMoney(r.avgCPM, Math.round(r.avgCPM * BENCHMARKS.usdToClp), cur);
-    document.getElementById('res-impressions').textContent = fmt(r.totalImpressions);
-    document.getElementById('res-cpc').textContent         = fmtMoney(r.avgCPC, Math.round(r.avgCPC * BENCHMARKS.usdToClp), cur);
-    document.getElementById('res-clicks').textContent      = fmt(r.totalClicks);
-    document.getElementById('res-cvr').textContent         = fmt(r.avgCVR, 'pct');
-    document.getElementById('res-conv-label').textContent  = r.conversionLabel;
-    document.getElementById('res-conversions').textContent = fmt(r.totalConversions);
-    document.getElementById('res-cpa').textContent         = fmtMoney(r.avgCPA, r.avgCPACLP, cur);
+    const hasOv = Object.keys(state.overrides).length > 0;
 
-    const hasOv = Object.values(state.overrides).some(ov => Object.keys(ov).length > 0);
-    const badge = document.getElementById('sim-badge');
-    badge.style.display = hasOv ? 'flex' : 'none';
+    // Green values
+    document.getElementById('res-impressions').textContent = fmt(r.impressions);
+    document.getElementById('res-cpc').textContent         = fmtMoney(r.cpc, Math.round(r.cpc * BENCHMARKS.usdToClp), cur);
+    document.getElementById('res-clicks').textContent      = fmt(r.clicks);
+    document.getElementById('res-conv-label').textContent  = r.conversionLabel;
+    document.getElementById('res-conversions').textContent = fmt(r.conversions);
+    document.getElementById('res-cpa').textContent         = fmtMoney(r.cpa, r.cpaCLP, cur);
+
+    // Yellow values (display + sync slider/input)
+    setYellow('cpm', r.cpm, '%', cur === 'CLP'
+      ? fmt(Math.round(r.cpm * BENCHMARKS.usdToClp), 'clp')
+      : fmt(r.cpm, 'usd'),
+      r.cpm, hasOv && state.overrides.cpm !== undefined);
+
+    setYellow('ctr', r.ctr, '%', fmt(r.ctr, 'pct'), r.ctr, hasOv && state.overrides.ctr !== undefined);
+    setYellow('cvr', r.cvr, '%', fmt(r.cvr, 'pct'), r.cvr, hasOv && state.overrides.cvr !== undefined);
+
+    // Display values in cards
+    document.getElementById('res-cpm').textContent = cur === 'CLP'
+      ? fmt(Math.round(r.cpm * BENCHMARKS.usdToClp), 'clp')
+      : fmt(r.cpm, 'usd');
+    document.getElementById('res-ctr').textContent = fmt(r.ctr, 'pct');
+    document.getElementById('res-cvr').textContent = fmt(r.cvr, 'pct');
+
+    // Sync sliders and inputs without triggering events
+    syncSliderInput('slider-cpm', 'input-cpm', r.cpm);
+    syncSliderInput('slider-ctr', 'input-ctr', r.ctr);
+    syncSliderInput('slider-cvr', 'input-cvr', r.cvr);
+
+    // Reset button
+    const resetBtn = document.getElementById('btn-reset-sim');
+    resetBtn.style.display = hasOv ? 'inline-block' : 'none';
+
+    // Highlight edited cards
+    ['cpm','ctr','cvr'].forEach(m => {
+      const card = document.getElementById('card-' + m);
+      if (card) card.classList.toggle('kpi-edited', state.overrides[m] !== undefined);
+    });
   }
 
-  function renderSimCards(r) {
-    const container = document.getElementById('sim-container');
-    container.innerHTML = '';
-
-    r.channels.forEach(ch => {
-      const ov = state.overrides[ch.channelId] || {};
-      const card = document.createElement('div');
-      card.className = 'sim-card';
-      card.innerHTML = `
-        <div class="sim-card-header">
-          <span class="sim-card-icon">${ch.channelIcon}</span>
-          <span class="sim-card-name">${ch.channelName}</span>
-          <span class="sim-card-budget">${fmtMoney(ch.budgetUSD, Math.round(ch.budgetUSD * BENCHMARKS.usdToClp), r.currencyMode)} / mes</span>
-        </div>
-        <div class="sim-fields">
-          <div class="sim-field">
-            <label class="sim-field-label${ov.cpc !== undefined ? ' sim-edited' : ''}">CPC</label>
-            ${ov.cpc !== undefined ? `<span class="sim-bench">bench: $${ch.benchmarkCPC}</span>` : ''}
-            <div class="sim-field-wrap">
-              <input type="number" class="sim-input" data-channel="${ch.channelId}" data-metric="cpc"
-                value="${ov.cpc !== undefined ? ov.cpc : ch.cpc}" min="0.01" step="0.01" />
-            </div>
-          </div>
-          <div class="sim-field">
-            <label class="sim-field-label${ov.cpm !== undefined ? ' sim-edited' : ''}">CPM</label>
-            ${ov.cpm !== undefined ? `<span class="sim-bench">bench: $${ch.benchmarkCPM}</span>` : ''}
-            <div class="sim-field-wrap">
-              <input type="number" class="sim-input" data-channel="${ch.channelId}" data-metric="cpm"
-                value="${ov.cpm !== undefined ? ov.cpm : ch.cpm}" min="0.01" step="0.01" />
-            </div>
-          </div>
-          <div class="sim-field">
-            <label class="sim-field-label${ov.cvr !== undefined ? ' sim-edited' : ''}">CVR %</label>
-            ${ov.cvr !== undefined ? `<span class="sim-bench">bench: ${ch.benchmarkCVR}%</span>` : ''}
-            <div class="sim-field-wrap">
-              <input type="number" class="sim-input" data-channel="${ch.channelId}" data-metric="cvr"
-                value="${ov.cvr !== undefined ? ov.cvr : ch.cvr}" min="0.01" step="0.01" />
-              <span class="sim-unit">%</span>
-            </div>
-          </div>
-        </div>`;
-      container.appendChild(card);
-    });
-
-    container.querySelectorAll('.sim-input').forEach(input => {
-      input.addEventListener('change', function() {
-        const v = parseFloat(this.value);
-        if (isNaN(v) || v <= 0) return;
-        if (!state.overrides[this.dataset.channel]) state.overrides[this.dataset.channel] = {};
-        state.overrides[this.dataset.channel][this.dataset.metric] = v;
-        runCalculation();
-      });
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') { e.preventDefault(); this.dispatchEvent(new Event('change')); }
-      });
-    });
+  function syncSliderInput(sliderId, inputId, val) {
+    const slider = document.getElementById(sliderId);
+    const input  = document.getElementById(inputId);
+    if (slider && !slider.matches(':active')) slider.value = Math.min(Math.max(val, parseFloat(slider.min)), parseFloat(slider.max));
+    if (input  && document.activeElement !== input) input.value = val;
   }
 
   return { init };
 })();
 
-// Init — scripts at bottom of body so DOM is already ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => Calculator.init());
 } else {
