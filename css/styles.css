@@ -861,3 +861,61 @@ tbody td {
   #sim-container { grid-template-columns: 1fr; }
   .sim-fields { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* ── Slider inside yellow KPI cards ── */
+.kpi-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(232,170,0,0.2);
+}
+.kpi-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 100px;
+  background: rgba(232,170,0,0.25);
+  outline: none;
+  cursor: pointer;
+}
+.kpi-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e8aa00;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(232,170,0,0.5);
+  transition: box-shadow 0.2s;
+}
+.kpi-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 10px rgba(232,170,0,0.8);
+}
+.kpi-number-input {
+  width: 100%;
+  background: rgba(232,170,0,0.1);
+  border: 1px solid rgba(232,170,0,0.35);
+  border-radius: 6px;
+  color: #e8aa00;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 8px;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.kpi-number-input::-webkit-outer-spin-button,
+.kpi-number-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.kpi-number-input:focus {
+  border-color: #e8aa00;
+  box-shadow: 0 0 0 3px rgba(232,170,0,0.15);
+}
+
+/* Edited state */
+.kpi-card.kpi-edited {
+  border-color: rgba(232,170,0,0.7) !important;
+  box-shadow: 0 0 0 2px rgba(232,170,0,0.15);
+}
