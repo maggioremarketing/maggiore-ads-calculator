@@ -171,11 +171,57 @@ const Calculator = (() => {
 
   function bindSliderEvents() {
     // CPM
-    bindSliderPair('cpm', 'slider-cpm', 'input-cpm');
+    bindCPMSlider();
     // CTR
     bindSliderPair('ctr', 'slider-ctr', 'input-ctr');
     // CVR
     bindSliderPair('cvr', 'slider-cvr', 'input-cvr');
+  }
+
+
+  // CPM slider — handles USD/CLP conversion
+  function bindCPMSlider() {
+    const slider = document.getElementById('slider-cpm');
+    const input  = document.getElementById('input-cpm');
+
+    function cpmDisplayToUSD(v) {
+      return state.currencyMode === 'CLP' ? v / BENCHMARKS.usdToClp : v;
+    }
+    function cpmUSDToDisplay(v) {
+      return state.currencyMode === 'CLP' ? Math.round(v * BENCHMARKS.usdToClp) : v;
+    }
+
+    slider.addEventListener('input', () => {
+      const displayVal = parseFloat(slider.value);
+      input.value = displayVal;
+      state.overrides.cpm = cpmDisplayToUSD(displayVal);
+      runCalculation();
+    });
+
+    input.addEventListener('change', () => {
+      const displayVal = parseFloat(input.value);
+      if (isNaN(displayVal) || displayVal <= 0) return;
+      const usdVal = cpmDisplayToUSD(displayVal);
+      slider.value = Math.min(Math.max(displayVal, parseFloat(slider.min)), parseFloat(slider.max));
+      state.overrides.cpm = usdVal;
+      runCalculation();
+    });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.dispatchEvent(new Event('change')); }
+    });
+
+    // Expose update function for currency switches
+    window._syncCPMDisplay = function(cpmUSD) {
+      const displayVal = cpmUSDToDisplay(cpmUSD);
+      const isClp = state.currencyMode === 'CLP';
+      // Adjust slider range for CLP
+      slider.min  = isClp ? 500  : 1;
+      slider.max  = isClp ? 50000 : 50;
+      slider.step = isClp ? 500  : 0.5;
+      input.step  = isClp ? 500  : 0.5;
+      if (document.activeElement !== input) input.value = displayVal;
+      if (!slider.matches(':active')) slider.value = Math.min(Math.max(displayVal, parseFloat(slider.min)), parseFloat(slider.max));
+    };
   }
 
   function bindSliderPair(metric, sliderId, inputId) {
@@ -253,7 +299,7 @@ const Calculator = (() => {
     document.getElementById('res-cvr').textContent = fmt(r.cvr, 'pct');
 
     // Sync sliders and inputs without triggering events
-    syncSliderInput('slider-cpm', 'input-cpm', r.cpm);
+    if (window._syncCPMDisplay) window._syncCPMDisplay(r.cpm); else syncSliderInput('slider-cpm', 'input-cpm', r.cpm);
     syncSliderInput('slider-ctr', 'input-ctr', r.ctr);
     syncSliderInput('slider-cvr', 'input-cvr', r.cvr);
 
