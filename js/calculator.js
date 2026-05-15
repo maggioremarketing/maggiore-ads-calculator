@@ -1,5 +1,5 @@
 /**
- * Maggiore Ads Calculator v5
+ * Maggiore Ads Calculator v6
  * KPIs: CPM🟡 · Impresiones🟢 · CTR🟡 · CPC🟢 · Clics🟢 · CVR🟡 · Leads🟢 · CPA🟢
  * Sliders + inputs en tarjetas amarillas. Sin sección de canales separada.
  */
@@ -154,6 +154,14 @@ const Calculator = (() => {
       runCalculation();
     });
 
+    // Ticket promedio — recalculate ROAS on input
+    const ticketInput = document.getElementById('input-ticket');
+    if (ticketInput) {
+      ticketInput.addEventListener('input', () => {
+        if (state.lastResult) renderROAS(state.lastResult);
+      });
+    }
+
     document.getElementById('btn-reset-sim').addEventListener('click', () => {
       state.overrides = {};
       runCalculation();
@@ -215,6 +223,7 @@ const Calculator = (() => {
     state.lastResult = r;
 
     renderKPIs(r);
+    renderROAS(r);
 
     const sec = document.getElementById('results-section');
     if (sec.style.display === 'none') {
@@ -263,6 +272,34 @@ const Calculator = (() => {
     const input  = document.getElementById(inputId);
     if (slider && !slider.matches(':active')) slider.value = Math.min(Math.max(val, parseFloat(slider.min)), parseFloat(slider.max));
     if (input  && document.activeElement !== input) input.value = val;
+  }
+
+
+  function renderROAS(r) {
+    const ticketEl = document.getElementById('input-ticket');
+    const roasCard = document.getElementById('roas-card');
+    const roasVal  = document.getElementById('res-roas');
+    const symbol   = document.getElementById('ticket-symbol');
+
+    // Update currency symbol
+    if (symbol) symbol.textContent = state.currencyMode === 'CLP' ? '$' : '$';
+
+    const ticketRaw = parseFloat(ticketEl ? ticketEl.value : '');
+    if (!ticketEl || isNaN(ticketRaw) || ticketRaw <= 0) {
+      roasCard.style.display = 'none';
+      return;
+    }
+
+    // Convert ticket to USD if needed
+    const ticketUSD = state.currencyMode === 'CLP'
+      ? ticketRaw / BENCHMARKS.usdToClp
+      : ticketRaw;
+
+    const revenue = r.conversions * ticketUSD;
+    const roas    = r.budgetUSD > 0 ? revenue / r.budgetUSD : 0;
+
+    roasCard.style.display = 'flex';
+    roasVal.textContent = roas.toFixed(2) + 'x';
   }
 
   return { init };
