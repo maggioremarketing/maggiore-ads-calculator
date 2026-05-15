@@ -6,7 +6,7 @@
   <title>Calculadora de Inversión en Medios Pagados — Maggiore</title>
   <link rel="icon" href="https://maggiore.cl/favicon.ico" type="image/x-icon">
   <meta name="description" content="Estima el alcance, leads y CPA de tus campañas en Meta Ads, Google Ads, TikTok y LinkedIn. Benchmarks del mercado Chile / LATAM." />
-  <link rel="stylesheet" href="css/styles.css?v=5" />
+  <link rel="stylesheet" href="css/styles.css?v=6" />
   <style>
     .budget-input-row { display:flex; align-items:center; gap:10px; }
     .budget-number { width:130px !important; font-size:18px !important; font-weight:600; flex-shrink:0; }
@@ -175,6 +175,26 @@
 
       </div>
 
+
+      <!-- TICKET PROMEDIO + ROAS (opcional) -->
+      <div class="ticket-section" id="ticket-section">
+        <div class="ticket-label">
+          <span>💰 Ticket promedio <span style="font-weight:400;color:var(--muted2)">(opcional)</span></span>
+          <span style="font-size:12px;color:var(--muted2)">Valor promedio por conversión — activa el cálculo de ROAS</span>
+        </div>
+        <div class="ticket-row">
+          <div class="ticket-input-wrap">
+            <span class="ticket-currency-symbol" id="ticket-symbol">$</span>
+            <input type="number" id="input-ticket" class="ticket-input" placeholder="ej: 150" min="0" step="1" />
+          </div>
+          <div class="kpi-card kpi-roas" id="roas-card" style="display:none;">
+            <div class="kpi-label">ROAS estimado</div>
+            <div class="kpi-value" id="res-roas">—</div>
+            <div class="kpi-sub">retorno sobre inversión en ads</div>
+          </div>
+        </div>
+      </div>
+
       <div class="disclaimer">
         <strong>⚠️ Nota metodológica:</strong> Los resultados son proyecciones basadas en benchmarks promedio
         de la industria para Chile y LATAM (Meta Business Insights, Google Ads, WordStream, 2024–2025).
@@ -191,8 +211,8 @@
     <p class="footer-text">Benchmarks: Meta Business Insights · Google Ads · WordStream · Statista</p>
   </footer>
 
-  <script src="js/benchmarks.js?v=5"></script>
-  <script src="js/calculator.js?v=5"></script>
+  <script src="js/benchmarks.js?v=6"></script>
+  <script src="js/calculator.js?v=6"></script>
 
 </body>
 </html>
