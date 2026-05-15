@@ -328,4 +328,9 @@ const Calculator = (() => {
 
 })();
 
-document.addEventListener('DOMContentLoaded', () => Calculator.init());
+// Scripts at bottom of body — DOM already ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => Calculator.init());
+} else {
+  Calculator.init();
+}
