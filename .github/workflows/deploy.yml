@@ -20,5 +20,5 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: "."
-          target: /home/u969893599/domains/maggiore.cl/public_html/intel/maggiore-ads-calculator/
+          target: /home/u969893599/domains/maggiore.cl/public_html/calculadora/
           rm: false
