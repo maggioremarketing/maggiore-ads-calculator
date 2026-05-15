@@ -919,3 +919,65 @@ tbody td {
   border-color: rgba(232,170,0,0.7) !important;
   box-shadow: 0 0 0 2px rgba(232,170,0,0.15);
 }
+
+/* ── Ticket Promedio / ROAS ── */
+.ticket-section {
+  margin: 0 0 24px 0;
+  padding: 20px 24px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.ticket-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+.ticket-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ticket-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  width: 200px;
+}
+.ticket-currency-symbol {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.ticket-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 700;
+  width: 100%;
+  -moz-appearance: textfield;
+}
+.ticket-input::-webkit-outer-spin-button,
+.ticket-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.ticket-input::placeholder { color: var(--muted2); font-weight: 400; }
+
+.kpi-card.kpi-roas {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  border-color: rgba(120, 219, 67, 0.4);
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(120,219,67,0.08) 100%);
+}
+.kpi-card.kpi-roas .kpi-value { color: #78db43; font-size: 28px; }
