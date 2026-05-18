@@ -70,43 +70,6 @@ const BENCHMARKS = {
         beauty:      { cpm: 6.5,  cpc: 1.40, ctr: 4.0, cvr: 3.8, cpa: 37,  roiMultiplier: 3.3 },
         auto:        { cpm: 9.5,  cpc: 3.20, ctr: 3.5, cvr: 1.8, cpa: 178, roiMultiplier: 5.0 },
       }
-    },
-    tiktok: {
-      name: 'TikTok Ads',
-      icon: '🎵',
-      color: '#EE1D52',
-      colorAlt: '#EE1D52',
-      description: 'Video & In-Feed Ads',
-      industries: {
-        retail:      { cpm: 9.5,  cpc: 0.60, ctr: 1.5, cvr: 1.8, cpa: 33,  roiMultiplier: 2.5 },
-        realestate:  { cpm: 10.0, cpc: 1.20, ctr: 1.1, cvr: 0.8, cpa: 188, roiMultiplier: 3.0 },
-        education:   { cpm: 8.0,  cpc: 0.75, ctr: 1.3, cvr: 2.5, cpa: 30,  roiMultiplier: 2.2 },
-        healthcare:  { cpm: 9.0,  cpc: 0.90, ctr: 0.9, cvr: 1.5, cpa: 60,  roiMultiplier: 2.0 },
-        finance:     { cpm: 11.0, cpc: 1.80, ctr: 0.7, cvr: 1.0, cpa: 180, roiMultiplier: 2.8 },
-        b2b:         { cpm: 10.5, cpc: 1.40, ctr: 0.8, cvr: 1.2, cpa: 117, roiMultiplier: 2.3 },
-        food:        { cpm: 7.5,  cpc: 0.40, ctr: 2.0, cvr: 3.0, cpa: 13,  roiMultiplier: 2.0 },
-        travel:      { cpm: 9.0,  cpc: 0.80, ctr: 1.3, cvr: 1.5, cpa: 53,  roiMultiplier: 2.8 },
-        beauty:      { cpm: 8.5,  cpc: 0.55, ctr: 1.7, cvr: 2.5, cpa: 22,  roiMultiplier: 2.6 },
-        auto:        { cpm: 11.0, cpc: 1.30, ctr: 1.0, cvr: 0.9, cpa: 144, roiMultiplier: 3.2 },
-      }
-    },
-    linkedin: {
-      name: 'LinkedIn Ads',
-      icon: '💼',
-      color: '#0A66C2',
-      description: 'Sponsored Content & InMail',
-      industries: {
-        retail:      { cpm: 25.0, cpc: 5.50, ctr: 0.4, cvr: 1.5, cpa: 367, roiMultiplier: 2.0 },
-        realestate:  { cpm: 28.0, cpc: 7.00, ctr: 0.5, cvr: 1.8, cpa: 389, roiMultiplier: 4.0 },
-        education:   { cpm: 22.0, cpc: 6.00, ctr: 0.5, cvr: 4.0, cpa: 150, roiMultiplier: 3.5 },
-        healthcare:  { cpm: 25.0, cpc: 6.50, ctr: 0.4, cvr: 2.5, cpa: 260, roiMultiplier: 3.0 },
-        finance:     { cpm: 30.0, cpc: 8.00, ctr: 0.5, cvr: 2.0, cpa: 400, roiMultiplier: 4.5 },
-        b2b:         { cpm: 26.0, cpc: 7.50, ctr: 0.6, cvr: 3.5, cpa: 214, roiMultiplier: 4.2 },
-        food:        { cpm: 22.0, cpc: 5.00, ctr: 0.4, cvr: 1.0, cpa: 500, roiMultiplier: 1.8 },
-        travel:      { cpm: 24.0, cpc: 6.00, ctr: 0.5, cvr: 1.5, cpa: 400, roiMultiplier: 3.0 },
-        beauty:      { cpm: 23.0, cpc: 5.50, ctr: 0.4, cvr: 1.2, cpa: 458, roiMultiplier: 2.2 },
-        auto:        { cpm: 27.0, cpc: 7.00, ctr: 0.5, cvr: 1.5, cpa: 467, roiMultiplier: 3.8 },
-      }
     }
   },
 
