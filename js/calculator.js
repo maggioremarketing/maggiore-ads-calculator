@@ -465,8 +465,11 @@ const Calculator = (() => {
     } catch(e) { console.error('Projection table error:', e); }
   }
 
-  return { init };
+  return { init, renderProjectionTable };
 })();
+
+// Expose for inline calls
+window.renderProjectionTable = function() { Calculator.renderProjectionTable(); };
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => Calculator.init());
