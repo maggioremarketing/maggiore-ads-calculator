@@ -104,18 +104,7 @@
 
       <div class="results-header">
         <h2 class="results-title">Proyección estimada</h2>
-        <button id="btn-export-pdf" onclick="
-  var btn=this;
-  if(typeof html2canvas==='undefined'){alert('Librería no cargada, intenta recargar la página.');return;}
-  btn.textContent='Generando...';btn.disabled=true;
-  html2canvas(document.getElementById('results-section'),{scale:2,backgroundColor:'#0a0a0a',useCORS:true,logging:false})
-  .then(function(c){
-    var a=document.createElement('a');
-    a.download='proyeccion-maggiore-'+(new Date().toISOString().slice(0,10))+'.png';
-    a.href=c.toDataURL('image/png');a.click();
-    btn.textContent='↓ Exportar PNG';btn.disabled=false;
-  }).catch(function(e){alert('Error: '+e.message);btn.textContent='↓ Exportar PNG';btn.disabled=false;});
-" style="background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PNG</button>
+        <button id="btn-export-pdf" onclick="exportarPNG(this)" style="background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PNG</button>
         <button id="btn-reset-sim" style="display:none;background:transparent;border:1px solid #e8aa0055;color:#e8aa00;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↺ Restablecer benchmarks</button>
       </div>
 
@@ -231,6 +220,125 @@
   <script src="js/html2canvas.min.js"></script>
   <script src="js/benchmarks.js?v=6"></script>
   <script src="js/calculator.js?v=6"></script>
+
+
+<script>
+function exportarPNG(btn) {
+  btn.textContent = 'Generando...';
+  btn.disabled = true;
+
+  try {
+    // Gather KPI data from DOM
+    var kpis = [
+      { label: 'CPM Promedio',       value: document.getElementById('res-cpm').textContent,         yellow: true },
+      { label: 'Impresiones',        value: document.getElementById('res-impressions').textContent,  yellow: false },
+      { label: 'CTR Promedio',       value: document.getElementById('res-ctr').textContent,          yellow: true },
+      { label: 'Clics Totales',      value: document.getElementById('res-clicks').textContent,       yellow: false },
+      { label: 'CPC Promedio',       value: document.getElementById('res-cpc').textContent,          yellow: false },
+      { label: 'CVR Promedio',       value: document.getElementById('res-cvr').textContent,          yellow: true },
+      { label: document.getElementById('res-conv-label').textContent, value: document.getElementById('res-conversions').textContent, yellow: false },
+      { label: 'CPA Promedio',       value: document.getElementById('res-cpa').textContent,          yellow: false },
+    ];
+
+    var ticketVal = document.getElementById('input-ticket').value;
+    var roasVal   = document.getElementById('res-roas') ? document.getElementById('res-roas').textContent : '';
+    var hasRoas   = ticketVal && roasVal && roasVal !== '—';
+
+    var W = 1200, cardW = 260, cardH = 130, cols = 4, pad = 32, gap = 16;
+    var rows = Math.ceil(kpis.length / cols);
+    var H = pad + 60 + rows * (cardH + gap) + (hasRoas ? 120 : 0) + 80 + pad;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    var ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(0, 0, W, H);
+
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px Arial';
+    ctx.fillText('Proyección estimada — Maggiore', pad, pad + 36);
+
+    // KPI cards
+    kpis.forEach(function(kpi, i) {
+      var col = i % cols;
+      var row = Math.floor(i / cols);
+      var x = pad + col * (cardW + gap);
+      var y = pad + 60 + row * (cardH + gap);
+
+      // Card bg
+      ctx.fillStyle = kpi.yellow ? 'rgba(232,170,0,0.08)' : 'rgba(120,219,67,0.05)';
+      ctx.strokeStyle = kpi.yellow ? 'rgba(232,170,0,0.5)' : 'rgba(120,219,67,0.3)';
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x, y, cardW, cardH, 10);
+      ctx.fill(); ctx.stroke();
+
+      // Label
+      ctx.fillStyle = kpi.yellow ? '#e8aa00' : '#aaaaaa';
+      ctx.font = '11px Arial';
+      ctx.fillText(kpi.label.toUpperCase(), x + 14, y + 22);
+
+      // Value
+      ctx.fillStyle = kpi.yellow ? '#e8aa00' : '#78db43';
+      ctx.font = 'bold 28px Arial';
+      ctx.fillText(kpi.value, x + 14, y + 62);
+    });
+
+    // ROAS row
+    if (hasRoas) {
+      var roasY = pad + 60 + rows * (cardH + gap) + gap;
+      ctx.fillStyle = 'rgba(120,219,67,0.05)';
+      ctx.strokeStyle = 'rgba(120,219,67,0.3)';
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, pad, roasY, W - pad*2, 90, 10);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#aaaaaa'; ctx.font = '11px Arial';
+      ctx.fillText('TICKET PROMEDIO', pad + 14, roasY + 22);
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 22px Arial';
+      ctx.fillText(ticketVal, pad + 14, roasY + 56);
+
+      ctx.fillStyle = '#aaaaaa'; ctx.font = '11px Arial';
+      ctx.fillText('ROAS ESTIMADO', pad + 240, roasY + 22);
+      ctx.fillStyle = '#78db43'; ctx.font = 'bold 28px Arial';
+      ctx.fillText(roasVal, pad + 240, roasY + 58);
+    }
+
+    // Footer
+    var footerY = H - 30;
+    ctx.fillStyle = '#555555'; ctx.font = '12px Arial';
+    ctx.fillText('Maggiore Marketing · maggiore.cl/calculadora · Benchmarks: Meta Business Insights, Google Ads, WordStream 2024-2025', pad, footerY);
+
+    // Download
+    var link = document.createElement('a');
+    link.download = 'proyeccion-maggiore-' + new Date().toISOString().slice(0,10) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+
+  btn.textContent = '↓ Exportar PNG';
+  btn.disabled = false;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+</script>
 
 </body>
 </html>
