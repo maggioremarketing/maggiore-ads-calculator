@@ -290,8 +290,15 @@ function calcROASAndTable(hasTicket) {
   var ticketRaw = parseFloat(ticketEl ? ticketEl.value : '');
   if (!ticketEl || isNaN(ticketRaw) || ticketRaw <= 0) {
     if (roasCard) roasCard.style.display = 'none';
-    if (tableSection) tableSection.style.display = 'none';
-    return;
+    // Still show table without revenue/ROAS if we have results
+    var tbody2 = document.getElementById('projection-tbody');
+    if (tbody2 && tbody2.children.length > 0) {
+      document.querySelectorAll('.col-revenue, .col-roas').forEach(function(el){ el.style.display = 'none'; });
+      document.querySelectorAll('#projection-tbody .td-revenue, #projection-tbody .td-roas').forEach(function(el){ el.style.display = 'none'; });
+    }
+    if (!window._projectionHasData) return;
+    hasTicket = false;
+    // fall through to redraw table
   }
 
   // Read currency mode from active button
@@ -364,17 +371,18 @@ function calcROASAndTable(hasTicket) {
       {val: r2.toFixed(2) + 'x', green: r2 >= 1, ticket: true},
     ];
     cells.forEach(function(c) {
-      if (c.ticket && !hasTicket) return;
       var td = document.createElement('td');
       td.textContent = c.val;
       if (c.green) td.style.color = '#78db43';
       if (isCurrent) td.style.fontWeight = '700';
+      if (c.ticket) { td.className = c.val.indexOf('x') > -1 ? 'td-roas' : 'td-revenue'; td.style.display = hasTicket ? '' : 'none'; }
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
 
   tableSection.style.display = 'block';
+  window._projectionHasData = true;
 }
 
 function computeProjection(budgetUSD, channels, industryId, objectiveId) {
