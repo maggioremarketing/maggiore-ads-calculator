@@ -981,3 +981,39 @@ tbody td {
   background: linear-gradient(135deg, var(--bg-card) 0%, rgba(120,219,67,0.08) 100%);
 }
 .kpi-card.kpi-roas .kpi-value { color: #78db43; font-size: 28px; }
+
+/* ══════════════════════════════════════════
+   PRINT / PDF EXPORT
+══════════════════════════════════════════ */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .navbar, .hero, .form-section, .footer,
+  #btn-export-pdf, #btn-reset-sim, .disclaimer { display: none !important; }
+  #results-section { display: block !important; padding: 0 !important; }
+  .results-title { color: #000 !important; font-size: 20px !important; }
+  .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
+  .kpi-card {
+    background: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+    padding: 12px !important;
+  }
+  .kpi-label { color: #555 !important; font-size: 9px !important; }
+  .kpi-value { font-size: 18px !important; color: #000 !important; }
+  .kpi-card.kpi-yellow .kpi-value,
+  .kpi-card.kpi-yellow .kpi-label { color: #b8860b !important; }
+  .kpi-card.kpi-green .kpi-value { color: #2d7a1a !important; }
+  .kpi-card.kpi-highlight { border-color: #2d7a1a !important; }
+  .kpi-slider-wrap { display: none !important; }
+  .ticket-section {
+    border: 1px solid #ddd !important;
+    background: #f9f9f9 !important;
+    break-inside: avoid;
+  }
+  .ticket-label, .ticket-input-wrap { color: #000 !important; }
+  .kpi-card.kpi-roas .kpi-value { color: #2d7a1a !important; }
+  .section-title { color: #000 !important; }
+  .results-header { margin-bottom: 16px !important; }
+}
+
+body.printing * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
