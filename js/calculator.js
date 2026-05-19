@@ -359,12 +359,36 @@ const Calculator = (() => {
   }
 
 
-  function exportPDF() {
-    // Open print dialog — user selects "Save as PDF"
-    // Hide everything except results for printing
-    document.body.classList.add('printing');
-    window.print();
-    setTimeout(() => document.body.classList.remove('printing'), 1000);
+  async function exportPDF() {
+    const btn = document.getElementById('btn-export-pdf');
+    const original = btn.textContent;
+    btn.textContent = 'Generando...';
+    btn.disabled = true;
+
+    try {
+      const section = document.getElementById('results-section');
+      const canvas = await html2canvas(section, {
+        scale: 2,
+        backgroundColor: '#0a0a0a',
+        useCORS: true,
+        logging: false,
+        windowWidth: section.scrollWidth,
+        windowHeight: section.scrollHeight,
+      });
+
+      // Download as PNG
+      const link = document.createElement('a');
+      const now = new Date().toISOString().slice(0, 10);
+      link.download = 'proyeccion-maggiore-' + now + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch(e) {
+      alert('Error al exportar. Intenta de nuevo.');
+      console.error(e);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
   }
 
   return { init };
