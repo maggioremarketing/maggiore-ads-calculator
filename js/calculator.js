@@ -278,6 +278,7 @@ const Calculator = (() => {
 
     renderKPIs(r);
     renderROAS(r);
+    renderProjectionTable();
 
     const sec = document.getElementById('results-section');
     if (sec.style.display === 'none') {
@@ -396,6 +397,7 @@ const Calculator = (() => {
 
 
   function renderProjectionTable() {
+    try {
     var ticketEl  = document.getElementById('input-ticket');
     var tableSection = document.getElementById('projection-table-section');
     var tbody = document.getElementById('projection-tbody');
@@ -460,6 +462,7 @@ const Calculator = (() => {
     });
 
     tableSection.style.display = 'block';
+    } catch(e) { console.error('Projection table error:', e); }
   }
 
   return { init };
