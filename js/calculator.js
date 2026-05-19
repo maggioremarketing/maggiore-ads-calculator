@@ -465,11 +465,15 @@ const Calculator = (() => {
     } catch(e) { console.error('Projection table error:', e); }
   }
 
-  return { init, renderProjectionTable };
+  return { init, renderProjectionTable, getState: () => state, calcAggregate };
 })();
 
 // Expose for inline calls
-window.renderProjectionTable = function() { Calculator.renderProjectionTable(); };
+window.renderProjectionTable = function() {
+  try { Calculator.renderProjectionTable(); } catch(e) { console.error('PT error:', e); }
+};
+window.calcAggregate = function(b,c,i,o,ov) { return Calculator.calcAggregate(b,c,i,o,ov); };
+window.getCalcState  = function() { return Calculator.getState(); };
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => Calculator.init());
