@@ -228,88 +228,130 @@ function exportarPNG(btn) {
   btn.disabled = true;
 
   try {
-    // Gather KPI data from DOM
+    // Gather input parameters
+    var indSel = document.getElementById('industry');
+    var objSel = document.getElementById('objective');
+    var budgetEl = document.getElementById('budget');
+    var curMode = document.querySelector('.currency-btn.active') ? document.querySelector('.currency-btn.active').textContent : 'USD';
+    var indText = indSel ? indSel.options[indSel.selectedIndex].text : '';
+    var objText = objSel ? objSel.options[objSel.selectedIndex].text : '';
+    var budgetText = (curMode === 'CLP' ? '$' : '$') + parseFloat(budgetEl.value).toLocaleString('es-CL') + ' ' + curMode;
+    var channels = [];
+    document.querySelectorAll('.channel-toggle.active').forEach(function(b){ channels.push(b.querySelector('.ch-name').textContent); });
+
+    // Gather KPI data
     var kpis = [
-      { label: 'CPM Promedio',       value: document.getElementById('res-cpm').textContent,         yellow: true },
-      { label: 'Impresiones',        value: document.getElementById('res-impressions').textContent,  yellow: false },
-      { label: 'CTR Promedio',       value: document.getElementById('res-ctr').textContent,          yellow: true },
-      { label: 'Clics Totales',      value: document.getElementById('res-clicks').textContent,       yellow: false },
-      { label: 'CPC Promedio',       value: document.getElementById('res-cpc').textContent,          yellow: false },
-      { label: 'CVR Promedio',       value: document.getElementById('res-cvr').textContent,          yellow: true },
-      { label: document.getElementById('res-conv-label').textContent, value: document.getElementById('res-conversions').textContent, yellow: false },
-      { label: 'CPA Promedio',       value: document.getElementById('res-cpa').textContent,          yellow: false },
+      { label: 'CPM Promedio',    value: document.getElementById('res-cpm').textContent,          yellow: true },
+      { label: 'Impresiones',     value: document.getElementById('res-impressions').textContent,   yellow: false },
+      { label: 'CTR Promedio',    value: document.getElementById('res-ctr').textContent,           yellow: true },
+      { label: 'Clics Totales',   value: document.getElementById('res-clicks').textContent,        yellow: false },
+      { label: 'CPC Promedio',    value: document.getElementById('res-cpc').textContent,           yellow: false },
+      { label: 'CVR Promedio',    value: document.getElementById('res-cvr').textContent,           yellow: true },
+      { label: document.getElementById('res-conv-label').textContent,
+                                  value: document.getElementById('res-conversions').textContent,   yellow: false },
+      { label: 'CPA Promedio',    value: document.getElementById('res-cpa').textContent,           yellow: false },
     ];
 
     var ticketVal = document.getElementById('input-ticket').value;
-    var roasVal   = document.getElementById('res-roas') ? document.getElementById('res-roas').textContent : '';
-    var hasRoas   = ticketVal && roasVal && roasVal !== '—';
+    var roasEl    = document.getElementById('res-roas');
+    var roasVal   = roasEl ? roasEl.textContent : '';
+    var hasRoas   = ticketVal && roasVal && roasVal !== '—' && roasVal !== '0.00x';
 
-    var W = 1200, cardW = 260, cardH = 130, cols = 4, pad = 32, gap = 16;
-    var rows = Math.ceil(kpis.length / cols);
-    var H = pad + 60 + rows * (cardH + gap) + (hasRoas ? 120 : 0) + 80 + pad;
+    // Canvas dimensions
+    var W = 1200, pad = 40, gap = 14;
+    var cardW = (W - pad*2 - gap*3) / 4;
+    var cardH = 110;
+    var headerH = 160;
+    var roasH = hasRoas ? 90 + gap : 0;
+    var H = headerH + 2*(cardH+gap) + roasH + 80;
 
     var canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
     var ctx = canvas.getContext('2d');
 
-    // Background
-    ctx.fillStyle = '#0d1117';
+    // White background
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 
+    // Top accent bar
+    ctx.fillStyle = '#42b8b4';
+    ctx.fillRect(0, 0, W, 6);
+
     // Title
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 28px Arial';
-    ctx.fillText('Proyección estimada — Maggiore', pad, pad + 36);
+    ctx.fillStyle = '#111111';
+    ctx.font = 'bold 26px Arial, sans-serif';
+    ctx.fillText('Proyección estimada — Maggiore Marketing', pad, 50);
 
-    // KPI cards
+    // Params row
+    ctx.fillStyle = '#555555';
+    ctx.font = '14px Arial, sans-serif';
+    var params = 'Industria: ' + indText + '  |  Objetivo: ' + objText + '  |  Presupuesto: ' + budgetText + '  |  Canales: ' + channels.join(' + ');
+    ctx.fillText(params, pad, 80);
+
+    // Divider
+    ctx.strokeStyle = '#e0e0e0';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, 100); ctx.lineTo(W-pad, 100); ctx.stroke();
+
+    // Section label
+    ctx.fillStyle = '#888888';
+    ctx.font = '11px Arial, sans-serif';
+    ctx.fillText('MÉTRICAS PROYECTADAS', pad, 128);
+
+    // KPI Cards (2 rows × 4 cols)
     kpis.forEach(function(kpi, i) {
-      var col = i % cols;
-      var row = Math.floor(i / cols);
+      var col = i % 4;
+      var row = Math.floor(i / 4);
       var x = pad + col * (cardW + gap);
-      var y = pad + 60 + row * (cardH + gap);
+      var y = headerH + row * (cardH + gap);
 
-      // Card bg
-      ctx.fillStyle = kpi.yellow ? 'rgba(232,170,0,0.08)' : 'rgba(120,219,67,0.05)';
-      ctx.strokeStyle = kpi.yellow ? 'rgba(232,170,0,0.5)' : 'rgba(120,219,67,0.3)';
+      // Card background
+      ctx.fillStyle = kpi.yellow ? '#fffbeb' : '#f0fdf4';
+      roundRect(ctx, x, y, cardW, cardH, 8);
+      ctx.fill();
+
+      // Card border
+      ctx.strokeStyle = kpi.yellow ? '#e8aa00' : '#78db43';
       ctx.lineWidth = 1.5;
-      roundRect(ctx, x, y, cardW, cardH, 10);
-      ctx.fill(); ctx.stroke();
+      roundRect(ctx, x, y, cardW, cardH, 8);
+      ctx.stroke();
 
       // Label
-      ctx.fillStyle = kpi.yellow ? '#e8aa00' : '#aaaaaa';
-      ctx.font = '11px Arial';
-      ctx.fillText(kpi.label.toUpperCase(), x + 14, y + 22);
+      ctx.fillStyle = kpi.yellow ? '#92600a' : '#166534';
+      ctx.font = 'bold 10px Arial, sans-serif';
+      ctx.fillText(kpi.label.toUpperCase(), x+12, y+22);
 
       // Value
-      ctx.fillStyle = kpi.yellow ? '#e8aa00' : '#78db43';
-      ctx.font = 'bold 28px Arial';
-      ctx.fillText(kpi.value, x + 14, y + 62);
+      ctx.fillStyle = kpi.yellow ? '#b45309' : '#15803d';
+      ctx.font = 'bold 26px Arial, sans-serif';
+      ctx.fillText(kpi.value, x+12, y+65);
     });
 
     // ROAS row
     if (hasRoas) {
-      var roasY = pad + 60 + rows * (cardH + gap) + gap;
-      ctx.fillStyle = 'rgba(120,219,67,0.05)';
-      ctx.strokeStyle = 'rgba(120,219,67,0.3)';
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, pad, roasY, W - pad*2, 90, 10);
-      ctx.fill(); ctx.stroke();
+      var ry = headerH + 2*(cardH+gap) + gap;
+      ctx.fillStyle = '#f0fdf4';
+      roundRect(ctx, pad, ry, W-pad*2, 72, 8);
+      ctx.fill();
+      ctx.strokeStyle = '#78db43'; ctx.lineWidth = 1.5;
+      roundRect(ctx, pad, ry, W-pad*2, 72, 8);
+      ctx.stroke();
 
-      ctx.fillStyle = '#aaaaaa'; ctx.font = '11px Arial';
-      ctx.fillText('TICKET PROMEDIO', pad + 14, roasY + 22);
-      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 22px Arial';
-      ctx.fillText(ticketVal, pad + 14, roasY + 56);
+      ctx.fillStyle = '#166534'; ctx.font = 'bold 10px Arial';
+      ctx.fillText('TICKET PROMEDIO', pad+12, ry+20);
+      ctx.fillStyle = '#15803d'; ctx.font = 'bold 22px Arial';
+      ctx.fillText('$' + parseFloat(ticketVal).toLocaleString('es-CL') + ' ' + curMode, pad+12, ry+52);
 
-      ctx.fillStyle = '#aaaaaa'; ctx.font = '11px Arial';
-      ctx.fillText('ROAS ESTIMADO', pad + 240, roasY + 22);
-      ctx.fillStyle = '#78db43'; ctx.font = 'bold 28px Arial';
-      ctx.fillText(roasVal, pad + 240, roasY + 58);
+      ctx.fillStyle = '#166534'; ctx.font = 'bold 10px Arial';
+      ctx.fillText('ROAS ESTIMADO', pad+300, ry+20);
+      ctx.fillStyle = '#15803d'; ctx.font = 'bold 28px Arial';
+      ctx.fillText(roasVal, pad+300, ry+54);
     }
 
     // Footer
-    var footerY = H - 30;
-    ctx.fillStyle = '#555555'; ctx.font = '12px Arial';
-    ctx.fillText('Maggiore Marketing · maggiore.cl/calculadora · Benchmarks: Meta Business Insights, Google Ads, WordStream 2024-2025', pad, footerY);
+    ctx.fillStyle = '#aaaaaa';
+    ctx.font = '11px Arial, sans-serif';
+    ctx.fillText('maggiore.cl/calculadora  ·  Benchmarks: Meta Business Insights, Google Ads, WordStream 2024–2025  ·  ' + new Date().toLocaleDateString('es-CL'), pad, H-18);
 
     // Download
     var link = document.createElement('a');
@@ -318,7 +360,7 @@ function exportarPNG(btn) {
     link.click();
 
   } catch(e) {
-    alert('Error: ' + e.message);
+    alert('Error al exportar: ' + e.message);
   }
 
   btn.textContent = '↓ Exportar PNG';
@@ -327,18 +369,12 @@ function exportarPNG(btn) {
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
   ctx.closePath();
 }
 </script>
-
 </body>
-</html>
