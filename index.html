@@ -191,7 +191,7 @@
         <div class="ticket-row">
           <div class="ticket-input-wrap">
             <span class="ticket-currency-symbol" id="ticket-symbol">$</span>
-            <input type="number" id="input-ticket" class="ticket-input" placeholder="ej: 150" oninput="if(window.renderProjectionTable)window.renderProjectionTable()" min="0" step="1" />
+            <input type="number" id="input-ticket" class="ticket-input" placeholder="ej: 150" oninput="calcROASAndTable()" oninput="calcROASAndTable()" min="0" step="1" />
           </div>
           <div class="kpi-card kpi-roas" id="roas-card" style="display:none;">
             <div class="kpi-label">ROAS estimado</div>
@@ -249,6 +249,132 @@
   <script src="js/benchmarks.js?v=6"></script>
   <script src="js/calculator.js?v=6"></script>
 
+
+
+<script>
+// ── ROAS + Projection Table (standalone, no dependency on calculator.js internals) ──
+
+function calcROASAndTable() {
+  var ticketEl = document.getElementById('input-ticket');
+  var roasCard = document.getElementById('roas-card');
+  var roasVal  = document.getElementById('res-roas');
+  var tableSection = document.getElementById('projection-table-section');
+  var tbody = document.getElementById('projection-tbody');
+
+  var ticketRaw = parseFloat(ticketEl ? ticketEl.value : '');
+  if (!ticketEl || isNaN(ticketRaw) || ticketRaw <= 0) {
+    if (roasCard) roasCard.style.display = 'none';
+    if (tableSection) tableSection.style.display = 'none';
+    return;
+  }
+
+  // Read currency mode from active button
+  var curBtn = document.querySelector('.currency-btn.active');
+  var cur = curBtn ? curBtn.textContent.trim() : 'USD';
+  var usdToClp = (window.BENCHMARKS && BENCHMARKS.usdToClp) ? BENCHMARKS.usdToClp : 950;
+
+  var ticketUSD = cur === 'CLP' ? ticketRaw / usdToClp : ticketRaw;
+
+  // Read budget from input
+  var budgetRaw = parseFloat(document.getElementById('budget').value) || 0;
+  var budgetUSD = cur === 'CLP' ? budgetRaw / usdToClp : budgetRaw;
+  if (budgetUSD <= 0) budgetUSD = 1000; // fallback
+
+  // Read conversions from result card
+  var convEl = document.getElementById('res-conversions');
+  var conversions = convEl ? parseInt(convEl.textContent.replace(/\./g,'').replace(/,/g,'')) || 0 : 0;
+
+  // ROAS
+  var revenue = conversions * ticketUSD;
+  var roas = budgetUSD > 0 ? revenue / budgetUSD : 0;
+  if (roasCard) roasCard.style.display = 'flex';
+  if (roasVal)  roasVal.textContent = roas.toFixed(2) + 'x';
+
+  // Projection table
+  if (!window.BENCHMARKS || !tableSection || !tbody) return;
+
+  var indSel = document.getElementById('industry');
+  var objSel = document.getElementById('objective');
+  var industryId  = indSel ? indSel.value : null;
+  var objectiveId = objSel ? objSel.value : null;
+  var channels = [];
+  document.querySelectorAll('.channel-toggle.active').forEach(function(b){
+    channels.push(b.dataset.channel);
+  });
+  if (!industryId || !objectiveId || !channels.length) return;
+
+  var multipliers = [0.25, 0.5, 0.75, 1, 1.5, 2, 3];
+  tbody.innerHTML = '';
+
+  multipliers.forEach(function(mult) {
+    var b = budgetUSD * mult;
+    var res = computeProjection(b, channels, industryId, objectiveId);
+    if (!res) return;
+
+    var isCurrent = mult === 1;
+    var rev = res.conversions * ticketUSD;
+    var r2  = b > 0 ? rev / b : 0;
+
+    var tr = document.createElement('tr');
+    if (isCurrent) tr.style.cssText = 'background:rgba(66,184,180,0.12);font-weight:700;';
+
+    var budDisp = cur === 'CLP'
+      ? '$' + Math.round(b * usdToClp).toLocaleString('es-CL') + ' CLP'
+      : '$' + Math.round(b).toLocaleString('en-US') + ' USD';
+    var revDisp = cur === 'CLP'
+      ? '$' + Math.round(rev * usdToClp).toLocaleString('es-CL') + ' CLP'
+      : '$' + Math.round(rev).toLocaleString('en-US') + ' USD';
+    var cpaDisp = cur === 'CLP'
+      ? '$' + Math.round(res.cpa * usdToClp).toLocaleString('es-CL')
+      : '$' + res.cpa.toFixed(2);
+
+    [isCurrent ? budDisp + ' ★' : budDisp,
+     res.impressions.toLocaleString('es-CL'),
+     res.clicks.toLocaleString('es-CL'),
+     res.conversions.toLocaleString('es-CL'),
+     cpaDisp, revDisp,
+     r2.toFixed(2) + 'x'
+    ].forEach(function(val, i) {
+      var td = document.createElement('td');
+      td.textContent = val;
+      if (i === 3 || i === 5) td.style.color = '#78db43';
+      if (i === 6 && r2 >= 1) td.style.color = '#78db43';
+      if (isCurrent) td.style.fontWeight = '700';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  tableSection.style.display = 'block';
+}
+
+function computeProjection(budgetUSD, channels, industryId, objectiveId) {
+  if (!window.BENCHMARKS) return null;
+  var B = BENCHMARKS;
+  var objMult = B.objectiveMultipliers[objectiveId];
+  if (!objMult) return null;
+
+  var sumCPM=0, sumCTR=0, sumCVR=0, sumCPA=0, count=0;
+  channels.forEach(function(chId){
+    var ch = B.channels[chId];
+    var ind = ch && ch.industries[industryId];
+    if (!ind) return;
+    sumCPM += ind.cpm; sumCTR += ind.ctr;
+    sumCVR += ind.cvr * objMult.cvrMult;
+    sumCPA += ind.cpa * objMult.cpaMult;
+    count++;
+  });
+  if (!count) return null;
+
+  var cpm = sumCPM/count, ctr = sumCTR/count, cvr = sumCVR/count;
+  var impressions = Math.round((budgetUSD / cpm) * 1000 * objMult.reachMult);
+  var clicks      = Math.round(impressions * (ctr/100));
+  var conversions = Math.round(clicks * (cvr/100));
+  var cpa         = conversions > 0 ? budgetUSD/conversions : sumCPA/count;
+
+  return { impressions:impressions, clicks:clicks, conversions:conversions, cpa:parseFloat(cpa.toFixed(2)) };
+}
+</script>
 
 <script>
 function exportarPNG(btn) {
