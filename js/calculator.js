@@ -339,6 +339,8 @@ const Calculator = (() => {
     const ticketRaw = parseFloat(ticketEl ? ticketEl.value : '');
     if (!ticketEl || isNaN(ticketRaw) || ticketRaw <= 0) {
       if (roasCard) roasCard.style.display = 'none';
+      var ps = document.getElementById('projection-table-section');
+      if (ps) ps.style.display = 'none';
       return;
     }
 
@@ -356,6 +358,7 @@ const Calculator = (() => {
 
     if (roasCard) roasCard.style.display = 'flex';
     if (roasVal)  roasVal.textContent = roas.toFixed(2) + 'x';
+    renderProjectionTable();
   }
 
 
@@ -389,6 +392,74 @@ const Calculator = (() => {
       btn.textContent = original;
       btn.disabled = false;
     }
+  }
+
+
+  function renderProjectionTable() {
+    var ticketEl  = document.getElementById('input-ticket');
+    var tableSection = document.getElementById('projection-table-section');
+    var tbody = document.getElementById('projection-tbody');
+    if (!tableSection || !tbody || !state.lastResult) return;
+
+    var ticketRaw = parseFloat(ticketEl ? ticketEl.value : '');
+    if (!ticketEl || isNaN(ticketRaw) || ticketRaw <= 0) {
+      tableSection.style.display = 'none';
+      return;
+    }
+
+    var cur = state.currencyMode;
+    var ticketUSD = cur === 'CLP' ? ticketRaw / BENCHMARKS.usdToClp : ticketRaw;
+    var baseBudget = state.budgetUSD;
+
+    // Investment scale multipliers — current budget highlighted
+    var multipliers = [0.25, 0.5, 0.75, 1, 1.5, 2, 3];
+
+    tbody.innerHTML = '';
+
+    multipliers.forEach(function(mult) {
+      var budget = baseBudget * mult;
+      var r = calcAggregate(budget, state.channels, state.industryId, state.objectiveId, state.overrides);
+      if (!r) return;
+
+      var revenue  = r.conversions * ticketUSD;
+      var roas     = budget > 0 ? revenue / budget : 0;
+      var isCurrent = mult === 1;
+
+      var tr = document.createElement('tr');
+      if (isCurrent) tr.style.cssText = 'background:rgba(66,184,180,0.12);font-weight:700;';
+
+      function cell(val, green) {
+        var td = document.createElement('td');
+        td.textContent = val;
+        if (green) td.style.color = '#78db43';
+        if (isCurrent) td.style.fontWeight = '700';
+        return td;
+      }
+
+      var budgetDisplay = cur === 'CLP'
+        ? '$' + Math.round(budget * BENCHMARKS.usdToClp).toLocaleString('es-CL') + ' CLP'
+        : '$' + budget.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' USD';
+
+      var revenueUSD = revenue;
+      var revenueDisplay = cur === 'CLP'
+        ? '$' + Math.round(revenueUSD * BENCHMARKS.usdToClp).toLocaleString('es-CL') + ' CLP'
+        : '$' + revenueUSD.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' USD';
+
+      var cpaDisplay = cur === 'CLP'
+        ? '$' + Math.round(r.cpa * BENCHMARKS.usdToClp).toLocaleString('es-CL')
+        : '$' + r.cpa.toFixed(2);
+
+      tr.appendChild(cell(isCurrent ? budgetDisplay + ' ★' : budgetDisplay, false));
+      tr.appendChild(cell(r.impressions.toLocaleString('es-CL'), false));
+      tr.appendChild(cell(r.clicks.toLocaleString('es-CL'), false));
+      tr.appendChild(cell(r.conversions.toLocaleString('es-CL'), true));
+      tr.appendChild(cell(cpaDisplay, false));
+      tr.appendChild(cell(revenueDisplay, true));
+      tr.appendChild(cell(roas.toFixed(2) + 'x', roas >= 1));
+      tbody.appendChild(tr);
+    });
+
+    tableSection.style.display = 'block';
   }
 
   return { init };
