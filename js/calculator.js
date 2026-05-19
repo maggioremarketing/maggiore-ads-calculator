@@ -359,61 +359,12 @@ const Calculator = (() => {
   }
 
 
-  async function exportPDF() {
-    const btn = document.getElementById('btn-export-pdf');
-    const originalText = btn.textContent;
-    btn.textContent = 'Generando...';
-    btn.disabled = true;
-
-    try {
-      const { jsPDF } = window.jspdf;
-      const section = document.getElementById('results-section');
-
-      const canvas = await html2canvas(section, {
-        scale: 2,
-        backgroundColor: '#0a0a0a',
-        useCORS: true,
-        logging: false,
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const imgW = pageW - 20;
-      const imgH = (canvas.height * imgW) / canvas.width;
-
-      let y = 10;
-      // If content is taller than one page, split across pages
-      if (imgH <= pageH - 20) {
-        pdf.addImage(imgData, 'PNG', 10, y, imgW, imgH);
-      } else {
-        let remaining = imgH;
-        let srcY = 0;
-        while (remaining > 0) {
-          const sliceH = Math.min(pageH - 20, remaining);
-          const sliceCanvas = document.createElement('canvas');
-          sliceCanvas.width = canvas.width;
-          sliceCanvas.height = (sliceH / imgH) * canvas.height;
-          const ctx = sliceCanvas.getContext('2d');
-          ctx.drawImage(canvas, 0, srcY * canvas.height / imgH, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
-          pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', 10, y, imgW, sliceH);
-          remaining -= sliceH;
-          srcY += sliceH;
-          if (remaining > 0) { pdf.addPage(); y = 10; }
-        }
-      }
-
-      const now = new Date();
-      const date = now.toISOString().slice(0,10);
-      pdf.save('proyeccion-maggiore-' + date + '.pdf');
-    } catch(e) {
-      alert('Error al generar PDF. Intenta de nuevo.');
-      console.error(e);
-    } finally {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
+  function exportPDF() {
+    // Open print dialog — user selects "Save as PDF"
+    // Hide everything except results for printing
+    document.body.classList.add('printing');
+    window.print();
+    setTimeout(() => document.body.classList.remove('printing'), 1000);
   }
 
   return { init };
