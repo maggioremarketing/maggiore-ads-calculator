@@ -104,7 +104,18 @@
 
       <div class="results-header">
         <h2 class="results-title">Proyección estimada</h2>
-        <button id="btn-export-pdf" style="background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PDF</button>
+        <button id="btn-export-pdf" onclick="
+  var btn=this;
+  if(typeof html2canvas==='undefined'){alert('Librería no cargada, intenta recargar la página.');return;}
+  btn.textContent='Generando...';btn.disabled=true;
+  html2canvas(document.getElementById('results-section'),{scale:2,backgroundColor:'#0a0a0a',useCORS:true,logging:false})
+  .then(function(c){
+    var a=document.createElement('a');
+    a.download='proyeccion-maggiore-'+(new Date().toISOString().slice(0,10))+'.png';
+    a.href=c.toDataURL('image/png');a.click();
+    btn.textContent='↓ Exportar PNG';btn.disabled=false;
+  }).catch(function(e){alert('Error: '+e.message);btn.textContent='↓ Exportar PNG';btn.disabled=false;});
+" style="background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PNG</button>
         <button id="btn-reset-sim" style="display:none;background:transparent;border:1px solid #e8aa0055;color:#e8aa00;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↺ Restablecer benchmarks</button>
       </div>
 
