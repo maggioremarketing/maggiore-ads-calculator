@@ -191,7 +191,7 @@
         <div class="ticket-row">
           <div class="ticket-input-wrap">
             <span class="ticket-currency-symbol" id="ticket-symbol">$</span>
-            <input type="number" id="input-ticket" class="ticket-input" placeholder="ej: 150" min="0" step="1" />
+            <input type="number" id="input-ticket" class="ticket-input" placeholder="ej: 150" oninput="if(window.renderProjectionTable)window.renderProjectionTable()" min="0" step="1" />
           </div>
           <div class="kpi-card kpi-roas" id="roas-card" style="display:none;">
             <div class="kpi-label">ROAS estimado</div>
