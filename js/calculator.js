@@ -335,27 +335,27 @@ const Calculator = (() => {
     const ticketEl = document.getElementById('input-ticket');
     const roasCard = document.getElementById('roas-card');
     const roasVal  = document.getElementById('res-roas');
-    const symbol   = document.getElementById('ticket-symbol');
-
-    // Update currency symbol
-    if (symbol) symbol.textContent = state.currencyMode === 'CLP' ? '$' : '$';
 
     const ticketRaw = parseFloat(ticketEl ? ticketEl.value : '');
     if (!ticketEl || isNaN(ticketRaw) || ticketRaw <= 0) {
-      roasCard.style.display = 'none';
+      if (roasCard) roasCard.style.display = 'none';
       return;
     }
 
-    // Convert ticket to USD if needed
+    // Always use state.budgetUSD (always in USD regardless of display mode)
+    const budgetUSD = state.budgetUSD;
+
+    // Ticket: convert to USD if in CLP mode
     const ticketUSD = state.currencyMode === 'CLP'
       ? ticketRaw / BENCHMARKS.usdToClp
       : ticketRaw;
 
-    const revenue = r.conversions * ticketUSD;
-    const roas    = r.budgetUSD > 0 ? revenue / r.budgetUSD : 0;
+    const conversions = r ? r.conversions : 0;
+    const revenue = conversions * ticketUSD;
+    const roas    = budgetUSD > 0 ? revenue / budgetUSD : 0;
 
-    roasCard.style.display = 'flex';
-    roasVal.textContent = roas.toFixed(2) + 'x';
+    if (roasCard) roasCard.style.display = 'flex';
+    if (roasVal)  roasVal.textContent = roas.toFixed(2) + 'x';
   }
 
 
