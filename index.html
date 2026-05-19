@@ -210,15 +210,15 @@
         </div>
         <div class="table-wrapper">
           <table id="projection-table">
-            <thead>
+            <thead id="projection-thead">
               <tr>
                 <th>Inversión mensual</th>
                 <th>Impresiones</th>
                 <th>Clics</th>
                 <th>Leads</th>
                 <th>CPA</th>
-                <th>Revenue estimado</th>
-                <th>ROAS</th>
+                <th class="col-revenue" style="display:none">Revenue estimado</th>
+                <th class="col-roas" style="display:none">ROAS</th>
               </tr>
             </thead>
             <tbody id="projection-tbody"></tbody>
@@ -252,9 +252,35 @@
 
 
 <script>
-// ── ROAS + Projection Table (standalone, no dependency on calculator.js internals) ──
+// ── ROAS + Projection Table (standalone) ──
 
-function calcROASAndTable() {
+function showProjectionTable() {
+  // Called after calculate — show simple table without ticket
+  var ticketRaw = parseFloat((document.getElementById('input-ticket')||{}).value);
+  var hasTicket = !isNaN(ticketRaw) && ticketRaw > 0;
+  calcROASAndTable(hasTicket);
+}
+
+// Hook into calculate button
+document.addEventListener('DOMContentLoaded', function() {
+  var calcBtn = document.getElementById('btn-calculate');
+  if (calcBtn) {
+    calcBtn.addEventListener('click', function() {
+      setTimeout(showProjectionTable, 300);
+    });
+  }
+});
+
+function calcROASAndTable(hasTicket) {
+  if (hasTicket === undefined) {
+    var t = parseFloat((document.getElementById('input-ticket')||{}).value);
+    hasTicket = !isNaN(t) && t > 0;
+  }
+
+  // Show/hide revenue and ROAS columns
+  document.querySelectorAll('.col-revenue, .col-roas').forEach(function(el){
+    el.style.display = hasTicket ? '' : 'none';
+  });
   var ticketEl = document.getElementById('input-ticket');
   var roasCard = document.getElementById('roas-card');
   var roasVal  = document.getElementById('res-roas');
@@ -328,17 +354,20 @@ function calcROASAndTable() {
       ? '$' + Math.round(res.cpa * usdToClp).toLocaleString('es-CL')
       : '$' + res.cpa.toFixed(2);
 
-    [isCurrent ? budDisp + ' ★' : budDisp,
-     res.impressions.toLocaleString('es-CL'),
-     res.clicks.toLocaleString('es-CL'),
-     res.conversions.toLocaleString('es-CL'),
-     cpaDisp, revDisp,
-     r2.toFixed(2) + 'x'
-    ].forEach(function(val, i) {
+    var cells = [
+      {val: isCurrent ? budDisp + ' ★' : budDisp, green: false},
+      {val: res.impressions.toLocaleString('es-CL'), green: false},
+      {val: res.clicks.toLocaleString('es-CL'), green: false},
+      {val: res.conversions.toLocaleString('es-CL'), green: true},
+      {val: cpaDisp, green: false},
+      {val: revDisp, green: true, ticket: true},
+      {val: r2.toFixed(2) + 'x', green: r2 >= 1, ticket: true},
+    ];
+    cells.forEach(function(c) {
+      if (c.ticket && !hasTicket) return;
       var td = document.createElement('td');
-      td.textContent = val;
-      if (i === 3 || i === 5) td.style.color = '#78db43';
-      if (i === 6 && r2 >= 1) td.style.color = '#78db43';
+      td.textContent = c.val;
+      if (c.green) td.style.color = '#78db43';
       if (isCurrent) td.style.fontWeight = '700';
       tr.appendChild(td);
     });
