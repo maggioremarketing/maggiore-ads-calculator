@@ -94,6 +94,7 @@
 
       <div class="results-header">
         <h2 class="results-title">Proyección estimada</h2>
+        <button id="btn-export-pdf" style="display:none;background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PDF</button>
         <button id="btn-reset-sim" style="display:none;background:transparent;border:1px solid #e8aa0055;color:#e8aa00;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↺ Restablecer benchmarks</button>
       </div>
 
@@ -206,6 +207,8 @@
     <p class="footer-text">Benchmarks: Meta Business Insights · Google Ads · WordStream · Statista</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="js/benchmarks.js?v=6"></script>
   <script src="js/calculator.js?v=6"></script>
 
