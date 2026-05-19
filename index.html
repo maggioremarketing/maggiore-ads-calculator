@@ -11,6 +11,16 @@
     .budget-input-row { display:flex; align-items:center; gap:10px; }
     .budget-number { width:130px !important; font-size:18px !important; font-weight:600; flex-shrink:0; }
   </style>
+  <style>
+    @media print {
+      .navbar, .hero, .form-section, .footer,
+      #btn-export-pdf, #btn-reset-sim { display: none !important; }
+      #results-section { display: block !important; padding: 10px !important; }
+      body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .kpi-card { border: 1px solid #ccc !important; break-inside: avoid; }
+      .kpi-slider-wrap { display: none !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -94,7 +104,7 @@
 
       <div class="results-header">
         <h2 class="results-title">Proyección estimada</h2>
-        <button id="btn-export-pdf" style="background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PDF</button>
+        <button id="btn-export-pdf" onclick="window.print()" style="background:transparent;border:1px solid #42b8b455;color:#42b8b4;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↓ Exportar PDF</button>
         <button id="btn-reset-sim" style="display:none;background:transparent;border:1px solid #e8aa0055;color:#e8aa00;border-radius:100px;padding:5px 16px;font-size:12px;cursor:pointer;font-weight:600;">↺ Restablecer benchmarks</button>
       </div>
 
